@@ -1,4 +1,4 @@
-package com.tydbits.google.challenges.braille_translation_2;
+package com.tydbits.google.challenges.L1_braille_translation_2;
 
 public class Answer {
     public static String answer(String plaintext) {

@@ -1,4 +1,4 @@
-package com.tydbits.google.challenges.prepare_the_bunnies_escape;
+package com.tydbits.google.challenges.L3_1_prepare_the_bunnies_escape;
 
 import java.util.*;
 

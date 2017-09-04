@@ -1,4 +1,4 @@
-package com.tydbits.google.challenges.gearing_up_for_destruction;
+package com.tydbits.google.challenges.L2_1_gearing_up_for_destruction;
 
 public class Answer {
     private static final int[] invalid = {-1, -1};

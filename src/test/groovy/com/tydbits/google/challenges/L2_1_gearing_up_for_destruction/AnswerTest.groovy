@@ -1,4 +1,4 @@
-package com.tydbits.google.challenges.gearing_up_for_destruction
+package com.tydbits.google.challenges.L2_1_gearing_up_for_destruction
 
 import spock.lang.Specification
 import spock.lang.Unroll
