@@ -3,7 +3,7 @@ package com.tydbits.google.challenges.L2_2_dont_get_volunteered
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class AnswerTest extends Specification {
+class L2_2_AnswerTest extends Specification {
     def answer = new Answer();
 
     @Unroll

@@ -3,7 +3,7 @@ package com.tydbits.google.challenges.L3_1_prepare_the_bunnies_escape
 import spock.lang.Specification
 import spock.lang.Unroll;
 
-class AnswerTest extends Specification {
+class L3_1_AnswerTest extends Specification {
     def answer = new Answer();
 
     @Unroll

@@ -3,7 +3,7 @@ package com.tydbits.google.challenges.L1_braille_translation_2
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class Test extends Specification {
+class L1_AnswerTest extends Specification {
     def answer = new Answer();
 
     @Unroll
