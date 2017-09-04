@@ -14,14 +14,11 @@ public class Answer {
                 ? evenFirstGear(firstGear1, lastGear1)
                 : oddFirstGear(firstGear1, lastGear1);
 
-        if (firstGear.compareTo(1) <= 0)
-            return invalid;
-
         // now run the found firstGear to make sure the other gears are valid, i.e. (0; distance)
         Rational[] gears = run(firstGear, pegs);
         for (int i = 0; i < gears.length; i++) {
             Rational gear = gears[i];
-            if (gear.compareTo(0) <= 0) return invalid;
+            if (gear.compareTo(1) < 0) return invalid; // not specified in readme for gears except first
             if (i > 0 && gear.compareTo(pegs[i] - pegs[i - 1]) >= 0) return invalid;
             if (i < gears.length - 1 && gear.compareTo(pegs[i + 1] - pegs[i]) >= 0) return invalid;
         }
