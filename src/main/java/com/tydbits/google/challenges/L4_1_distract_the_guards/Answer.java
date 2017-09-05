@@ -1,5 +1,6 @@
 package com.tydbits.google.challenges.L4_1_distract_the_guards;
 
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,11 +15,12 @@ public class Answer {
 
     static class Query {
         private final int[] bananas;
-        private final HashMap<BitSet /* mask */, BitSet /* pairing */> bestPairings;
+        private final HashMap<String /* bananas */, BitSet /* pairing */> bestPairings;
 
         Query(int[] bananas) {
             this.bananas = bananas;
             this.bestPairings = new HashMap<>();
+            Arrays.sort(bananas);
         }
 
         int minFinite() {
@@ -27,16 +29,22 @@ public class Answer {
         }
 
         private BitSet bestPairing(BitSet mask, int start) {
-            BitSet pairing = bestPairings.get(mask);
+            StringBuilder sb = new StringBuilder();
+            for (int i = mask.nextClearBit(0); i < bananas.length; i = mask.nextClearBit(++i)) {
+                if (sb.length() > 0) sb.append(',');
+                sb.append(bananas[i]);
+            }
+            String key = sb.toString();
+            BitSet pairing = bestPairings.get(key);
             if (pairing == null)
-                bestPairings.put(mask, pairing = newBestPairing(mask, start));
+                bestPairings.put(key, pairing = newBestPairing(mask, start));
             return pairing;
         }
 
         private BitSet newBestPairing(BitSet mask, int start) {
             BitSet bestPairing = mask;
-            for (int i = mask.nextClearBit(start); i < bananas.length - 1 && !mask.get(i); mask.nextClearBit(++i)) {
-                for (int j = mask.nextClearBit(i + 1); j < bananas.length && !mask.get(j); mask.nextClearBit(++j)) {
+            for (int i = mask.nextClearBit(start); i < bananas.length - 1; i = mask.nextClearBit(++i)) {
+                for (int j = mask.nextClearBit(i + 1); j < bananas.length; j = mask.nextClearBit(++j)) {
                     if (!isFiniteMatch(new Pair(bananas[i], bananas[j]))) {
                         BitSet pairing = (BitSet) bestPairing(markPaired(mask, i, j), i + 1).clone();
                         pairing.clear(0, i);
