@@ -5,7 +5,8 @@ apply plugin: 'groovy'
 apply plugin: 'java'
 apply plugin: 'idea'
 
-sourceCompatibility = 1.8
+// Google FooBar requires Java 1.7
+sourceCompatibility = 1.7
 
 repositories {
     mavenCentral()
