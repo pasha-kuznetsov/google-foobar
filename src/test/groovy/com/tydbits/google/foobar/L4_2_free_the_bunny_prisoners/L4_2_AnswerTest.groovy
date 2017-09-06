@@ -7,7 +7,7 @@ class L4_2_AnswerTest extends Specification {
     def answer = new Answer()
 
     @Unroll
-    def "test #num_buns #num_required"() {
+    def "test #buns #required"() {
         expect:
         answer.answer(buns, required) == expectedAnswer as int[][]
 
