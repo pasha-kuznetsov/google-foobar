@@ -1,4 +1,4 @@
-group 'com.tydbits.google.challenges'
+group 'com.tydbits.google.foobar'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'groovy'
