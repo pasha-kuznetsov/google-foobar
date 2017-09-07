@@ -14,19 +14,19 @@ class L5_1_AnswerTest extends Specification {
         where:
         g | expectedAnswer
 
-        [[true, false, true],
-         [false, true, false],
-         [true, false, true]] |  4
+        [['o', '.', 'o'].collect { it == 'o' },
+         ['.', 'o', '.'].collect { it == 'o' },
+         ['o', '.', 'o'].collect { it == 'o' }] |  4
 
-        [[true, false, true, false, false, true, true, true],
-         [true, false, true, false, false, false, true, false],
-         [true, true, true, false, false, false, true, false],
-         [true, false, true, false, false, false, true, false],
-         [true, false, true, false, false, true, true, true]] | 254
+        [['o', '.', 'o', '.', '.', 'o', 'o', 'o'].collect { it == 'o' },
+         ['o', '.', 'o', '.', '.', '.', 'o', '.'].collect { it == 'o' },
+         ['o', 'o', 'o', '.', '.', '.', 'o', '.'].collect { it == 'o' },
+         ['o', '.', 'o', '.', '.', '.', 'o', '.'].collect { it == 'o' },
+         ['o', '.', 'o', '.', '.', 'o', 'o', 'o'].collect { it == 'o' }] | 254
 
-        [[true, true, false, true, false, true, false, true, true, false],
-         [true, true, false, false, false, false, true, true, true, false],
-         [true, true, false, false, false, false, false, false, false, true],
-         [false, true, false, false, false, false, true, true, false, false]] | 11567
+        [['o', 'o', '.', 'o', '.', 'o', '.', 'o', 'o', '.'].collect { it == 'o' },
+         ['o', 'o', '.', '.', '.', '.', 'o', 'o', 'o', '.'].collect { it == 'o' },
+         ['o', 'o', '.', '.', '.', '.', '.', '.', '.', 'o'].collect { it == 'o' },
+         ['.', 'o', '.', '.', '.', '.', 'o', 'o', '.', '.'].collect { it == 'o' }] | 11567
     }
 }
