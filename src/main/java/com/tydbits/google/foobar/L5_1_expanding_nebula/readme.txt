@@ -64,17 +64,29 @@ Test cases
 ==========
 
 Inputs:
-    (boolean) g = [[true, false, true], [false, true, false], [true, false, true]]
+    (boolean) g = [
+        [true, false, true],
+        [false, true, false],
+        [true, false, true]]
 Output:
     (int) 4
 
 Inputs:
-    (boolean) g = [[true, false, true, false, false, true, true, true], [true, false, true, false, false, false, true, false], [true, true, true, false, false, false, true, false], [true, false, true, false, false, false, true, false], [true, false, true, false, false, true, true, true]]
+    (boolean) g = [
+        [true, false, true, false, false, true, true, true],
+        [true, false, true, false, false, false, true, false],
+        [true, true, true, false, false, false, true, false],
+        [true, false, true, false, false, false, true, false],
+        [true, false, true, false, false, true, true, true]]
 Output:
     (int) 254
 
 Inputs:
-    (boolean) g = [[true, true, false, true, false, true, false, true, true, false], [true, true, false, false, false, false, true, true, true, false], [true, true, false, false, false, false, false, false, false, true], [false, true, false, false, false, false, true, true, false, false]]
+    (boolean) g = [
+        [true, true, false, true, false, true, false, true, true, false],
+        [true, true, false, false, false, false, true, true, true, false],
+        [true, true, false, false, false, false, false, false, false, true],
+        [false, true, false, false, false, false, true, true, false, false]]
 Output:
     (int) 11567
 
