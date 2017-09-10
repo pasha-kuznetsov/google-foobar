@@ -1,6 +1,5 @@
 package com.tydbits.google.foobar.L5_expanding_nebula;
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 
