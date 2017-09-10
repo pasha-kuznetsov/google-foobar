@@ -9,7 +9,6 @@ class L5_AnswerTest extends Specification {
     def "test basic #g"() {
         given:
         def q = new Answer.Query(toBool(g))
-//        q.print = true;
 
         expect:
         q.count() == expectedAnswer
@@ -95,6 +94,22 @@ class L5_AnswerTest extends Specification {
          "oo....ooo.",
          "oo.......o",
          ".o....oo.."] | 11567
+    }
+
+    def "test performance"() {
+        given:
+        def q = toBool(g) as Answer.Query
+
+        expect:
+        q.count() == expectedAnswer
+
+        where:
+        g              | expectedAnswer
+
+        ["oo.o.o.oo..oo.o.o.oo..oo.o.o.oo.",
+         "oo....ooo..oo....ooo..oo....ooo.",
+         "oo.......o.oo.......o.oo.......o",
+         ".o....oo....o....oo....o....oo.."] | 23872751586
     }
 
     private static int answer(g) {

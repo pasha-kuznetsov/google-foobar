@@ -3,12 +3,12 @@ package com.tydbits.google.foobar.L5_expanding_nebula
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class L5_PatternTest extends Specification {
+class L5_CellTest extends Specification {
 
     @Unroll
     def "test left #args"() {
         expect:
-        (args as Answer.Pattern).left == expectedAnswer
+        (args as Answer.Cell).left == expectedAnswer
 
         where:
         args         | expectedAnswer
@@ -20,7 +20,7 @@ class L5_PatternTest extends Specification {
     @Unroll
     def "test right #args"() {
         expect:
-        (args as Answer.Pattern).right == expectedAnswer
+        (args as Answer.Cell).right == expectedAnswer
 
         where:
         args         | expectedAnswer
@@ -32,7 +32,7 @@ class L5_PatternTest extends Specification {
     @Unroll
     def "test left right #left #right"() {
         expect:
-        (left as Answer.Pattern).left == (right as Answer.Pattern).right
+        (left as Answer.Cell).left == (right as Answer.Cell).right
 
         where:
         left         | right
