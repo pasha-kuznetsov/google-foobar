@@ -135,90 +135,112 @@ public class Answer {
             return true;
         }
 
-        static class Columns {
-            private final int index;
-            final Multimap<Integer, Column> left;
-            final Multimap<Integer, Column> right;
-
-            Columns(int column) {
-                this.index = column;
-                this.left = new Multimap<>();
-                this.right = new Multimap<>();
-            }
-
-            void add(Column column) {
-                left.addValue(column.left, column);
-                right.addValue(column.right, column);
-            }
-
-            void removeLeft(Set<Integer> remove) {
-                for (Integer key : remove) {
-                    for (Column c : left.get(key)) {
-                        right.removeValue(c.right, c);
-                    }
-                }
-                left.keySet().removeAll(remove);
-            }
-
-            void removeRight(Set<Integer> remove) {
-                for (Integer key : remove) {
-                    for (Column c : right.get(key)) {
-                        left.removeValue(c.left, c);
-                    }
-                }
-                right.keySet().removeAll(remove);
-            }
-        }
-
-        static class Column {
-            int left;
-            int right;
-            int count = -1;
-
-            Column(int left, int right) {
-                this.left = left;
-                this.right = right;
-            }
-        }
-
-        static class Cell {
-            int row;
-            int column;
-            final HashSet<Pattern> patterns;
-            final Multimap<Integer, Pattern> topPatterns;
-            final Multimap<Integer, Pattern> leftPatterns;
-            final Multimap<Integer, Pattern> rightPatterns;
-
-            Cell(int row, int column, ArrayList<Pattern> patterns) {
-                this.row = row;
-                this.column = column;
-                this.patterns = new HashSet<>();
-                this.topPatterns = new Multimap<>();
-                this.leftPatterns = new Multimap<>();
-                this.rightPatterns = new Multimap<>();
-                for (Pattern pattern : patterns) {
-                    this.patterns.add(pattern);
-                    topPatterns.addValue(pattern.top, pattern);
-                    leftPatterns.addValue(pattern.left, pattern);
-                    rightPatterns.addValue(pattern.right, pattern);
-                }
-            }
-
-            boolean validLeft(Pattern pattern) {
-                return leftPatterns.containsKey(pattern.right);
-            }
-
-            boolean validRight(Pattern pattern) {
-                return rightPatterns.containsKey(pattern.left);
-            }
-        }
-
         private boolean isFirstColumn(Cell cell) { return cell.column <= 0; }
         private boolean isLastColumn(Cell cell) { return cell.column + 1 >= cells[cell.row].length; }
         private boolean isLastRow(Cell cell) { return cell.row >= cells.length - 1; }
         private Cell leftFrom(Cell cell) { return cells[cell.row][cell.column - 1]; }
         private Cell rightFrom(Cell cell) { return cells[cell.row][cell.column + 1]; }
         private Cell nextRow(Cell cell) { return cells[cell.row + 1][cell.column]; }
+    }
+
+    static class Columns {
+        private final int index;
+        final Multimap<Integer, Column> left;
+        final Multimap<Integer, Column> right;
+
+        Columns(int column) {
+            this.index = column;
+            this.left = new Multimap<>();
+            this.right = new Multimap<>();
+        }
+
+        void add(Column column) {
+            left.addValue(column.left, column);
+            right.addValue(column.right, column);
+        }
+
+        void removeLeft(Set<Integer> remove) {
+            for (Integer key : remove) {
+                for (Column c : left.get(key)) {
+                    right.removeValue(c.right, c);
+                }
+            }
+            left.keySet().removeAll(remove);
+        }
+
+        void removeRight(Set<Integer> remove) {
+            for (Integer key : remove) {
+                for (Column c : right.get(key)) {
+                    left.removeValue(c.left, c);
+                }
+            }
+            right.keySet().removeAll(remove);
+        }
+    }
+
+    static class Column {
+        int left;
+        int right;
+        int count = -1;
+
+        Column(int left, int right) {
+            this.left = left;
+            this.right = right;
+        }
+    }
+
+    static class Cell {
+        int row;
+        int column;
+        final HashSet<Pattern> patterns;
+        final Multimap<Integer, Pattern> topPatterns;
+        final Multimap<Integer, Pattern> leftPatterns;
+        final Multimap<Integer, Pattern> rightPatterns;
+
+        Cell(int row, int column, ArrayList<Pattern> patterns) {
+            this.row = row;
+            this.column = column;
+            this.patterns = new HashSet<>();
+            this.topPatterns = new Multimap<>();
+            this.leftPatterns = new Multimap<>();
+            this.rightPatterns = new Multimap<>();
+            for (Pattern pattern : patterns) {
+                this.patterns.add(pattern);
+                topPatterns.addValue(pattern.top, pattern);
+                leftPatterns.addValue(pattern.left, pattern);
+                rightPatterns.addValue(pattern.right, pattern);
+            }
+        }
+
+        boolean validLeft(Pattern pattern) {
+            return leftPatterns.containsKey(pattern.right);
+        }
+
+        boolean validRight(Pattern pattern) {
+            return rightPatterns.containsKey(pattern.left);
+        }
+    }
+
+    static class Pattern {
+        int top;
+        int bottom;
+        int left;
+        int right;
+        int count;
+
+        Pattern(int top, int bottom) {
+            this.top = top;
+            this.bottom = bottom;
+            this.left = ((top & 0b10)) | ((bottom & 0b10) >> 1);
+            this.right = ((top & 0b01) << 1) | ((bottom & 0b01));
+            this.count = (top & 0b01) + ((top & 0b10) >> 1) + (bottom & 0b01) + ((bottom & 0b10) >> 1);
+        }
+
+        @Override
+        public String toString() {
+            return ((top & 0b10) == 0 ? "." : "o") + ((top & 0b01) == 0 ? '.' : 'o') + ' ' +
+                    ((bottom & 0b10) == 0 ? "." : "o") + ((bottom & 0b01) == 0 ? '.' : 'o');
+        }
     }
 
     static class Multimap<K, V> extends HashMap<K, HashSet<V>> {
@@ -249,27 +271,5 @@ public class Answer {
         HashSet<T> diff = new HashSet<>(set);
         diff.removeAll(remove);
         return diff;
-    }
-
-    static class Pattern {
-        int top;
-        int bottom;
-        int left;
-        int right;
-        int count;
-
-        Pattern(int top, int bottom) {
-            this.top = top;
-            this.bottom = bottom;
-            this.left = ((top & 0b10)) | ((bottom & 0b10) >> 1);
-            this.right = ((top & 0b01) << 1) | ((bottom & 0b01));
-            this.count = (top & 0b01) + ((top & 0b10) >> 1) + (bottom & 0b01) + ((bottom & 0b10) >> 1);
-        }
-
-        @Override
-        public String toString() {
-            return ((top & 0b10) == 0 ? "." : "o") + ((top & 0b01) == 0 ? '.' : 'o') + ' ' +
-                    ((bottom & 0b10) == 0 ? "." : "o") + ((bottom & 0b01) == 0 ? '.' : 'o');
-        }
     }
 }
