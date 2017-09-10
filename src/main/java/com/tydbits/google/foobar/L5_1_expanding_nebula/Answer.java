@@ -11,14 +11,14 @@ public class Answer {
         private final ArrayList<Pattern> gasPatterns;
         private final ArrayList<Pattern> emptyPatterns;
         private final Cell[][] cells;
-        private final ArrayList<Rows> rows;
+        private final ArrayList<Columns> columns;
         private int terminal;
 
         Query(boolean[][] g) {
             this.gasPatterns = new ArrayList<>();
             this.emptyPatterns = new ArrayList<>();
-            for (String top : new String[]{"..", ".o", "o.", "oo"}) {
-                for (String bottom : new String[]{"..", ".o", "o.", "oo"}) {
+            for (String top : new String[] {"..", ".o", "o.", "oo"}) {
+                for (String bottom : new String[] {"..", ".o", "o.", "oo"}) {
                     // empty cell -> 1 non-empty predecessor
                     // non-empty -> other number of non-empty predecessors
                     Pattern pattern = new Pattern(top, bottom);
@@ -33,120 +33,130 @@ public class Answer {
                 }
             }
 
-            this.rows = new ArrayList<>();
-            for (int row = 0; row < cells.length; ++row)
-                rows.add(generateRows(new Rows(row), "", "", null, cells[row][0]));
+            this.columns = new ArrayList<>();
+            for (int column = 0; column < cells[0].length; ++column)
+                columns.add(generateColumns(new Columns(column), "", "", null, cells[0][column]));
 
             boolean restricted;
             do {
                 restricted = false;
-                for (int row = 1; row < rows.size(); ++row)
-                    if (restrict(rows.get(row - 1), rows.get(row)))
+                for (int column = 1; column < columns.size(); ++column)
+                    if (restrict(columns.get(column - 1), columns.get(column)))
                         restricted = true;
             } while (restricted);
         }
 
-        private Rows generateRows(Rows rows, String top, String bottom, Pattern left, Cell cell) {
-            HashSet<Pattern> patterns = left == null ? cell.patterns : cell.patternsByLeft.get(left.right);
+        private Columns generateColumns(Columns columns, String left, String right, Pattern top, Cell cell) {
+            HashSet<Pattern> patterns = top == null ? cell.patterns : cell.topPatterns.get(top.bottom);
             if (patterns != null) {
                 for (Pattern pattern : patterns) {
-                    generateRows(rows, top, bottom, cell, pattern);
+                    if (cell.column > 0) {
+                        Cell prev = cells[cell.row][cell.column - 1];
+                        if (!prev.rightPatterns.containsKey(pattern.left))
+                            continue;
+                    }
+                    if (cell.column + 1 < cells[cell.row].length) {
+                        Cell next = cells[cell.row][cell.column + 1];
+                        if (!next.leftPatterns.containsKey(pattern.right))
+                            continue;
+                    }
+                    generateColumns(columns, left, right, cell, pattern);
                 }
             }
-            return rows;
+            return columns;
         }
 
-        private void generateRows(Rows rows, String top, String bottom, Cell cell, Pattern pattern) {
-            if (cell.column == cells[0].length - 1)
-                rows.add(new Row(top + pattern.top, bottom + pattern.bottom));
+        private void generateColumns(Columns columns, String left, String right, Cell cell, Pattern pattern) {
+            if (cell.row == cells.length - 1)
+                columns.add(new Column(left + pattern.left, right + pattern.right));
             else
-                generateRows(rows,
-                        top + pattern.top.charAt(0),
-                        bottom + pattern.bottom.charAt(0),
+                generateColumns(columns,
+                        left + pattern.left.charAt(0),
+                        right + pattern.right.charAt(0),
                         pattern,
-                        cells[cell.row][cell.column + 1]);
+                        cells[cell.row + 1][cell.column]);
         }
 
-        private boolean restrict(Rows left, Rows right) {
-            HashSet<String> common = intersect(left.bottom.keySet(), right.top.keySet());
-            if (common.size() == left.bottom.size() && common.size() == right.top.size())
+        private boolean restrict(Columns left, Columns right) {
+            HashSet<String> common = intersect(left.right.keySet(), right.left.keySet());
+            if (common.size() == left.right.size() && common.size() == right.left.size())
                 return false;
-            left.removeBottom(diff(left.bottom.keySet(), common));
-            right.removeTop(diff(right.top.keySet(), common));
+            left.removeRight(diff(left.right.keySet(), common));
+            right.removeLeft(diff(right.left.keySet(), common));
             return true;
         }
 
         int count() {
             this.terminal = 0;
-            countRows(rows.get(0));
+            countColumns(columns.get(0));
             return terminal;
         }
 
-        private void countRows(Rows rows) {
-            for (HashSet<Row> right : rows.bottom.values()) {
-                for (Row row : right) {
-                    countRows(rows, row);
+        private void countColumns(Columns columns) {
+            for (HashSet<Column> right : columns.right.values()) {
+                for (Column c : right) {
+                    countColumns(columns, c);
                 }
             }
         }
 
-        private void countRows(Rows c, Row row) {
-            if (c.row == rows.size() - 1)
+        private void countColumns(Columns c, Column column) {
+            if (c.column == columns.size() - 1)
                 terminal += 1;
             else
-                countRows(rows.get(c.row + 1), row.bottom);
+                countColumns(columns.get(c.column + 1), column.right);
         }
 
-        private void countRows(Rows c, String top) {
-            HashSet<Row> set = c.top.get(top);
+        private void countColumns(Columns c, String left) {
+            HashSet<Column> set = c.left.get(left);
             if (set == null)
                 return;
-            for (Row row : set)
-                countRows(c, row);
+            for (Column column : set)
+                countColumns(c, column);
         }
 
-        static class Rows {
-            private final int row;
-            final Multimap<String, Row> top;
-            final Multimap<String, Row> bottom;
+        static class Columns {
+            private final int column;
+            final Multimap<String, Column> left;
+            final Multimap<String, Column> right;
 
-            Rows(int row) {
-                this.row = row;
-                this.top = new Multimap<>();
-                this.bottom = new Multimap<>();
+            Columns(int row) {
+                this.column = row;
+                this.left = new Multimap<>();
+                this.right = new Multimap<>();
             }
 
-            void add(Row row) {
-                top.addValue(row.top, row);
-                bottom.addValue(row.bottom, row);
+            void add(Column row) {
+                left.addValue(row.left, row);
+                right.addValue(row.right, row);
             }
 
-            void removeTop(Set<String> remove) {
+            void removeLeft(Set<String> remove) {
                 for (String key : remove) {
-                    for (Row c : top.get(key)) {
-                        bottom.removeValue(c.bottom, c);
+                    for (Column c : left.get(key)) {
+                        right.removeValue(c.right, c);
                     }
                 }
-                top.keySet().removeAll(remove);
+                left.keySet().removeAll(remove);
             }
 
-            void removeBottom(Set<String> remove) {
+            void removeRight(Set<String> remove) {
                 for (String key : remove) {
-                    for (Row c : bottom.get(key)) {
-                        top.removeValue(c.top, c);
+                    for (Column c : right.get(key)) {
+                        left.removeValue(c.left, c);
                     }
                 }
-                bottom.keySet().removeAll(remove);
+                right.keySet().removeAll(remove);
             }
         }
 
-        static class Row {
-            String top = "";
-            String bottom = "";
+        static class Column {
+            String left = "";
+            String right = "";
 
-            Row(String top, String bottom) {
-                this.top = top;
-                this.bottom = bottom;
+            Column(String left, String right) {
+                this.left = left;
+                this.right = right;
             }
         }
 
@@ -154,16 +164,25 @@ public class Answer {
             int row;
             int column;
             final HashSet<Pattern> patterns;
-            final Multimap<String, Pattern> patternsByLeft;
+            final Multimap<String, Pattern> topPatterns;
+            final Multimap<String, Pattern> bottomPatterns;
+            final Multimap<String, Pattern> leftPatterns;
+            final Multimap<String, Pattern> rightPatterns;
 
             Cell(int row, int column, ArrayList<Pattern> patterns) {
                 this.row = row;
                 this.column = column;
                 this.patterns = new HashSet<>();
-                this.patternsByLeft = new Multimap<>();
+                this.topPatterns = new Multimap<>();
+                this.bottomPatterns = new Multimap<>();
+                this.leftPatterns = new Multimap<>();
+                this.rightPatterns = new Multimap<>();
                 for (Pattern pattern : patterns) {
                     this.patterns.add(pattern);
-                    patternsByLeft.addValue(pattern.left, pattern);
+                    topPatterns.addValue(pattern.top, pattern);
+                    bottomPatterns.addValue(pattern.bottom, pattern);
+                    leftPatterns.addValue(pattern.left, pattern);
+                    rightPatterns.addValue(pattern.right, pattern);
                 }
             }
 
