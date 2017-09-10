@@ -39,17 +39,16 @@ public class Answer {
             return countColumns(columns.get(0));
         }
 
-        private int countColumns(Columns columns) {
+        int countColumns(Columns columns) {
             int count = 0;
             for (HashSet<Column> right : columns.right.values()) {
-                for (Column c : right) {
+                for (Column c : right)
                     count += countColumns(columns, c);
-                }
             }
             return count;
         }
 
-        private int countColumns(Columns c, Column column) {
+        int countColumns(Columns c, Column column) {
             if (column.count >= 0)
                 return column.count;
             column.count = c.index == columns.size() - 1
@@ -58,7 +57,7 @@ public class Answer {
             return column.count;
         }
 
-        private int countColumns(Columns c, int left) {
+        int countColumns(Columns c, int left) {
             HashSet<Column> set = c.left.get(left);
             if (set == null)
                 return 0;
@@ -84,7 +83,7 @@ public class Answer {
                 return columns;
             }
 
-            private void generateColumns(Cell cell, Pattern pattern) {
+            void generateColumns(Cell cell, Pattern pattern) {
                 setLeft(cell.row, pattern.left);
                 setRight(cell.row, pattern.right);
                 if (isLastRow(cell)) {
@@ -99,9 +98,9 @@ public class Answer {
                 }
             }
 
-            private boolean isLastRow(Cell cell) { return cell.row >= cells.length - 1; }
+            boolean isLastRow(Cell cell) { return cell.row >= cells.length - 1; }
 
-            private Cell nextRow(Cell cell) { return cells[cell.row + 1][cell.column]; }
+            Cell nextRow(Cell cell) { return cells[cell.row + 1][cell.column]; }
 
             void setLeft(int row, int value) {
                 left &= ~(0b11 << (row * 2));
@@ -113,13 +112,13 @@ public class Answer {
                 right |= value << (row * 2);
             }
 
-            private Column newColumn() {
+            Column newColumn() {
                 return new Column(left, right);
             }
         }
 
         static class Columns {
-            private final int index;
+            final int index;
             final Multimap<Integer, Column> left;
             final Multimap<Integer, Column> right;
 
