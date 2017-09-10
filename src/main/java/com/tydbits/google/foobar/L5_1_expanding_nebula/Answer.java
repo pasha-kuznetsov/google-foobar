@@ -8,16 +8,14 @@ public class Answer {
     }
 
     static class Query {
-        private final ArrayList<Pattern> gasPatterns;
-        private final ArrayList<Pattern> emptyPatterns;
         private final Cell[][] cells;
         private final ArrayList<Columns> columns;
 
         Query(boolean[][] g) {
-            this.gasPatterns = new ArrayList<>();
-            this.emptyPatterns = new ArrayList<>();
-            for (String top : new String[] {"..", ".o", "o.", "oo"}) {
-                for (String bottom : new String[] {"..", ".o", "o.", "oo"}) {
+            ArrayList<Pattern> gasPatterns = new ArrayList<>();
+            ArrayList<Pattern> emptyPatterns = new ArrayList<>();
+            for (int top : new int[] {0b00, 0b01, 0b10, 0b11}) {
+                for (int bottom : new int[] {0b00, 0b01, 0b10, 0b11}) {
                     // empty cell -> 1 non-empty predecessor
                     // non-empty -> other number of non-empty predecessors
                     Pattern pattern = new Pattern(top, bottom);
@@ -34,7 +32,7 @@ public class Answer {
 
             this.columns = new ArrayList<>();
             for (int column = 0; column < cells[0].length; ++column)
-                columns.add(generateColumns(new Columns(column), "", "", null, cells[0][column]));
+                columns.add(new ColumnBuilder(column).generateColumns());
 
             boolean restricted;
             do {
@@ -43,46 +41,6 @@ public class Answer {
                     if (restrict(columns.get(column - 1), columns.get(column)))
                         restricted = true;
             } while (restricted);
-        }
-
-        private Columns generateColumns(Columns columns, String left, String right, Pattern top, Cell cell) {
-            HashSet<Pattern> patterns = top == null ? cell.patterns : cell.topPatterns.get(top.bottom);
-            if (patterns != null) {
-                for (Pattern pattern : patterns) {
-                    if (cell.column > 0) {
-                        Cell prev = cells[cell.row][cell.column - 1];
-                        if (!prev.rightPatterns.containsKey(pattern.left))
-                            continue;
-                    }
-                    if (cell.column + 1 < cells[cell.row].length) {
-                        Cell next = cells[cell.row][cell.column + 1];
-                        if (!next.leftPatterns.containsKey(pattern.right))
-                            continue;
-                    }
-                    generateColumns(columns, left, right, cell, pattern);
-                }
-            }
-            return columns;
-        }
-
-        private void generateColumns(Columns columns, String left, String right, Cell cell, Pattern pattern) {
-            if (cell.row == cells.length - 1)
-                columns.add(new Column(left + pattern.left, right + pattern.right));
-            else
-                generateColumns(columns,
-                        left + pattern.left.charAt(0),
-                        right + pattern.right.charAt(0),
-                        pattern,
-                        cells[cell.row + 1][cell.column]);
-        }
-
-        private boolean restrict(Columns left, Columns right) {
-            HashSet<String> common = intersect(left.right.keySet(), right.left.keySet());
-            if (common.size() == left.right.size() && common.size() == right.left.size())
-                return false;
-            left.removeRight(diff(left.right.keySet(), common));
-            right.removeLeft(diff(right.left.keySet(), common));
-            return true;
         }
 
         int count() {
@@ -102,13 +60,13 @@ public class Answer {
         private int countColumns(Columns c, Column column) {
             if (column.count >= 0)
                 return column.count;
-            column.count = c.column == columns.size() - 1
+            column.count = c.index == columns.size() - 1
                     ? 1
-                    : countColumns(columns.get(c.column + 1), column.right);
+                    : countColumns(columns.get(c.index + 1), column.right);
             return column.count;
         }
 
-        private int countColumns(Columns c, String left) {
+        private int countColumns(Columns c, int left) {
             HashSet<Column> set = c.left.get(left);
             if (set == null)
                 return 0;
@@ -118,24 +76,83 @@ public class Answer {
             return count;
         }
 
-        static class Columns {
-            private final int column;
-            final Multimap<String, Column> left;
-            final Multimap<String, Column> right;
+        class ColumnBuilder {
+            private final Columns columns;
+            private int left;
+            private int right;
 
-            Columns(int row) {
-                this.column = row;
+            ColumnBuilder(int index) {
+                this.columns = new Columns(index);
+            }
+
+            Columns generateColumns() {
+                Cell cell = cells[0][columns.index];
+                generateColumns(cell, cell.patterns);
+                return columns;
+            }
+
+            private void generateColumns(Cell cell, HashSet<Pattern> patterns) {
+                if (patterns == null) return;
+                for (Pattern pattern : patterns)
+                    generateColumns(cell, pattern);
+            }
+
+            private void generateColumns(Cell cell, Pattern pattern) {
+                if (!isFirstColumn(cell) && !leftFrom(cell).validRight(pattern)) return;
+                if (!isLastColumn(cell) && !rightFrom(cell).validLeft(pattern)) return;
+                setLeft(cell.row, pattern.left);
+                setRight(cell.row, pattern.right);
+                if (isLastRow(cell)) {
+                    columns.add(newColumn());
+                }
+                else {
+                    Cell next = nextRow(cell);
+                    generateColumns(next, next.topPatterns.get(pattern.bottom));
+                }
+            }
+
+            void setLeft(int row, int value) {
+                left &= ~(0b11 << (row * 2));
+                left |= value << (row * 2);
+            }
+
+            void setRight(int row, int value) {
+                right &= ~(0b11 << (row * 2));
+                right |= value << (row * 2);
+            }
+
+            private Column newColumn() {
+                return new Column(left, right);
+            }
+        }
+
+        private boolean restrict(Columns left, Columns right) {
+            HashSet<Integer> common = intersect(left.right.keySet(), right.left.keySet());
+            if (common.size() == left.right.size() && common.size() == right.left.size())
+                return false;
+            left.removeRight(diff(left.right.keySet(), common));
+            right.removeLeft(diff(right.left.keySet(), common));
+            return true;
+        }
+
+        static class Columns {
+            private final int index;
+            final Multimap<Integer, Column> left;
+            final Multimap<Integer, Column> right;
+
+            Columns(int column) {
+                this.index = column;
                 this.left = new Multimap<>();
                 this.right = new Multimap<>();
             }
 
-            void add(Column row) {
-                left.addValue(row.left, row);
-                right.addValue(row.right, row);
+            void add(Column column) {
+                left.addValue(column.left, column);
+                right.addValue(column.right, column);
             }
 
-            void removeLeft(Set<String> remove) {
-                for (String key : remove) {
+            void removeLeft(Set<Integer> remove) {
+                for (Integer key : remove) {
                     for (Column c : left.get(key)) {
                         right.removeValue(c.right, c);
                     }
@@ -143,8 +160,8 @@ public class Answer {
                 left.keySet().removeAll(remove);
             }
 
-            void removeRight(Set<String> remove) {
-                for (String key : remove) {
+            void removeRight(Set<Integer> remove) {
+                for (Integer key : remove) {
                     for (Column c : right.get(key)) {
                         left.removeValue(c.left, c);
                     }
@@ -154,11 +171,11 @@ public class Answer {
         }
 
         static class Column {
-            String left = "";
-            String right = "";
+            int left;
+            int right;
             int count = -1;
 
-            Column(String left, String right) {
+            Column(int left, int right) {
                 this.left = left;
                 this.right = right;
             }
@@ -168,29 +185,40 @@ public class Answer {
             int row;
             int column;
             final HashSet<Pattern> patterns;
-            final Multimap<String, Pattern> topPatterns;
-            final Multimap<String, Pattern> bottomPatterns;
-            final Multimap<String, Pattern> leftPatterns;
-            final Multimap<String, Pattern> rightPatterns;
+            final Multimap<Integer, Pattern> topPatterns;
+            final Multimap<Integer, Pattern> leftPatterns;
+            final Multimap<Integer, Pattern> rightPatterns;
 
             Cell(int row, int column, ArrayList<Pattern> patterns) {
                 this.row = row;
                 this.column = column;
                 this.patterns = new HashSet<>();
                 this.topPatterns = new Multimap<>();
-                this.bottomPatterns = new Multimap<>();
                 this.leftPatterns = new Multimap<>();
                 this.rightPatterns = new Multimap<>();
                 for (Pattern pattern : patterns) {
                     this.patterns.add(pattern);
                     topPatterns.addValue(pattern.top, pattern);
-                    bottomPatterns.addValue(pattern.bottom, pattern);
                     leftPatterns.addValue(pattern.left, pattern);
                     rightPatterns.addValue(pattern.right, pattern);
                 }
             }
 
+            boolean validLeft(Pattern pattern) {
+                return leftPatterns.containsKey(pattern.right);
+            }
+
+            boolean validRight(Pattern pattern) {
+                return rightPatterns.containsKey(pattern.left);
+            }
         }
+
+        private boolean isFirstColumn(Cell cell) { return cell.column <= 0; }
+        private boolean isLastColumn(Cell cell) { return cell.column + 1 >= cells[cell.row].length; }
+        private boolean isLastRow(Cell cell) { return cell.row >= cells.length - 1; }
+        private Cell leftFrom(Cell cell) { return cells[cell.row][cell.column - 1]; }
+        private Cell rightFrom(Cell cell) { return cells[cell.row][cell.column + 1]; }
+        private Cell nextRow(Cell cell) { return cells[cell.row + 1][cell.column]; }
     }
 
     static class Multimap<K, V> extends HashMap<K, HashSet<V>> {
@@ -211,31 +239,37 @@ public class Answer {
         }
     }
 
-    static HashSet<String> intersect(Set<String> left, Set<String> right) {
-        HashSet<String> common = new HashSet<>(left);
+    static <T> HashSet<T> intersect(Set<T> left, Set<T> right) {
+        HashSet<T> common = new HashSet<>(left);
         common.retainAll(right);
         return common;
     }
 
-    static HashSet<String> diff(Set<String> set, Set<String> remove) {
-        HashSet<String> diff = new HashSet<>(set);
+    static <T> HashSet<T> diff(Set<T> set, Set<T> remove) {
+        HashSet<T> diff = new HashSet<>(set);
         diff.removeAll(remove);
         return diff;
     }
 
     static class Pattern {
-        String top;
-        String bottom;
-        String left;
-        String right;
+        int top;
+        int bottom;
+        int left;
+        int right;
         int count;
 
-        Pattern(String top, String bottom) {
+        Pattern(int top, int bottom) {
             this.top = top;
             this.bottom = bottom;
-            this.left = top.substring(0, 1) + bottom.substring(0, 1);
-            this.right = top.substring(1, 2) + bottom.substring(1, 2);
-            this.count = (top + bottom).replace(".", "").length();
+            this.left = ((top & 0b10)) | ((bottom & 0b10) >> 1);
+            this.right = ((top & 0b01) << 1) | ((bottom & 0b01));
+            this.count = (top & 0b01) + ((top & 0b10) >> 1) + (bottom & 0b01) + ((bottom & 0b10) >> 1);
+        }
+
+        @Override
+        public String toString() {
+            return ((top & 0b10) == 0 ? "." : "o") + ((top & 0b01) == 0 ? '.' : 'o') + ' ' +
+                    ((bottom & 0b10) == 0 ? "." : "o") + ((bottom & 0b01) == 0 ? '.' : 'o');
         }
     }
 }
