@@ -9,10 +9,10 @@ class L5_1_AnswerTest extends Specification {
     def "test basic #g"() {
         given:
         def q = new Answer.Query(toBool(g))
-        q.print = true;
+//        q.print = true;
 
         expect:
-        q.walk() == expectedAnswer
+        q.count() == expectedAnswer
 
         where:
         g       | expectedAnswer
