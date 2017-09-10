@@ -1,9 +1,9 @@
-package com.tydbits.google.foobar.L5_1_expanding_nebula
+package com.tydbits.google.foobar.L5_expanding_nebula
 
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class L5_1_PatternTest extends Specification {
+class L5_PatternTest extends Specification {
 
     @Unroll
     def "test left #args"() {

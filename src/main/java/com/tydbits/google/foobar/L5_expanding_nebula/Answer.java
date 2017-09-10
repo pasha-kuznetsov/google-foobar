@@ -1,4 +1,4 @@
-package com.tydbits.google.foobar.L5_1_expanding_nebula;
+package com.tydbits.google.foobar.L5_expanding_nebula;
 
 import java.util.*;
 
