@@ -79,14 +79,9 @@ public class Answer {
 
             Columns generateColumns() {
                 Cell cell = cells[0][columns.index];
-                generateColumns(cell, cell.patterns);
-                return columns;
-            }
-
-            private void generateColumns(Cell cell, HashSet<Pattern> patterns) {
-                if (patterns == null) return;
-                for (Pattern pattern : patterns)
+                for (Pattern pattern : cell.patterns)
                     generateColumns(cell, pattern);
+                return columns;
             }
 
             private void generateColumns(Cell cell, Pattern pattern) {
@@ -97,7 +92,10 @@ public class Answer {
                 }
                 else {
                     Cell next = nextRow(cell);
-                    generateColumns(next, next.topPatterns.get(pattern.bottom));
+                    for (Pattern nextPattern : next.patterns) {
+                        if (nextPattern.top == pattern.bottom)
+                            generateColumns(next, nextPattern);
+                    }
                 }
             }
 
@@ -151,18 +149,12 @@ public class Answer {
         static class Cell {
             int row;
             int column;
-            final HashSet<Pattern> patterns;
-            final Multimap<Integer, Pattern> topPatterns;
+            final ArrayList<Pattern> patterns;
 
             Cell(int row, int column, ArrayList<Pattern> patterns) {
                 this.row = row;
                 this.column = column;
-                this.patterns = new HashSet<>();
-                this.topPatterns = new Multimap<>();
-                for (Pattern pattern : patterns) {
-                    this.patterns.add(pattern);
-                    topPatterns.addValue(pattern.top, pattern);
-                }
+                this.patterns = patterns;
             }
         }
     }
