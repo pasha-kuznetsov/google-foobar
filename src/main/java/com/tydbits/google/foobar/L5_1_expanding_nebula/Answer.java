@@ -12,7 +12,6 @@ public class Answer {
         private final ArrayList<Pattern> emptyPatterns;
         private final Cell[][] cells;
         private final ArrayList<Columns> columns;
-        private int terminal;
 
         Query(boolean[][] g) {
             this.gasPatterns = new ArrayList<>();
@@ -87,32 +86,36 @@ public class Answer {
         }
 
         int count() {
-            this.terminal = 0;
-            countColumns(columns.get(0));
-            return terminal;
+            return countColumns(columns.get(0));
         }
 
-        private void countColumns(Columns columns) {
+        private int countColumns(Columns columns) {
+            int count = 0;
             for (HashSet<Column> right : columns.right.values()) {
                 for (Column c : right) {
-                    countColumns(columns, c);
+                    count += countColumns(columns, c);
                 }
             }
+            return count;
         }
 
-        private void countColumns(Columns c, Column column) {
-            if (c.column == columns.size() - 1)
-                terminal += 1;
-            else
-                countColumns(columns.get(c.column + 1), column.right);
+        private int countColumns(Columns c, Column column) {
+            if (column.count >= 0)
+                return column.count;
+            column.count = c.column == columns.size() - 1
+                    ? 1
+                    : countColumns(columns.get(c.column + 1), column.right);
+            return column.count;
         }
 
-        private void countColumns(Columns c, String left) {
+        private int countColumns(Columns c, String left) {
             HashSet<Column> set = c.left.get(left);
             if (set == null)
-                return;
+                return 0;
+            int count = 0;
             for (Column column : set)
-                countColumns(c, column);
+                count += countColumns(c, column);
+            return count;
         }
 
         static class Columns {
@@ -153,6 +156,7 @@ public class Answer {
         static class Column {
             String left = "";
             String right = "";
+            int count = -1;
 
             Column(String left, String right) {
                 this.left = left;
